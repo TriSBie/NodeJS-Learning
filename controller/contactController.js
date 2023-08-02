@@ -9,8 +9,8 @@ const getContact = (req, res) => {
 //@route CREATE /api/contacts
 //@access public - 201 (created/ updated success)
 const createContact = (req, res) => {
-    if ()
-        res.status(201).send(`<h1>Create a contacts </h1>`);
+    if () git init
+    res.status(201).send(`<h1>Create a contacts </h1>`);
 };
 
 //@desc Delete a Contacts
