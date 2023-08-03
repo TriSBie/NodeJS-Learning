@@ -7,14 +7,22 @@ const validation = asyncHandler(async (req, res, next) => {
   let authHeader = req.headers.authorization || req.headers.Authorization;
   if (authHeader && authHeader.startsWith("Bearer")) {
     token = authHeader.split(" ")[1];
+
     //split the token string with sample "Bearer <JWT>" - get only <JWT> encode
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
       if (err) {
         res.status(401);
         throw new Error("User is not authorized");
       }
-      console.log(decoded);
+      console.log(typeof decoded.user.id);
+      req.user = decoded.user;
+      next();
     });
+  }
+  //if missing token
+  if (!token) {
+    res.status(401);
+    throw new Error("User is not authorized or token is missing");
   }
 });
 

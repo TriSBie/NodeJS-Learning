@@ -7,16 +7,17 @@ const Contact = require("../models/contactModel");
 
 //@desc Get all Contacts
 //@route GET /api/contacts
-//@access public
+//@access private
 const getContact = async (req, res) => {
-  const contacts = await Contact.find();
+  //find all contact belongs to the userID
+  const contacts = await Contact.find({ user_id: req.user.id });
   console.log(contacts);
   res.status(200).json(contacts);
 };
 
 //@desc Create a Contacts
 //@route CREATE /api/contacts
-//@access public - 201 (created/ updated success)
+//@access private - 201 (created/ updated success)
 const createContact = asyncHandler(async (req, res) => {
   //app.get("/", asyncHandler(async function)*)
   const { name, email, phone } = req.body;
@@ -29,6 +30,8 @@ const createContact = asyncHandler(async (req, res) => {
     name,
     email,
     phone,
+    //user_id means when each user are logged in will contains/own his/her unique id
+    user_id: req.user.id,
   });
   //get request from body and add into the collection data
   res.status(201).json(contacts);
@@ -36,7 +39,7 @@ const createContact = asyncHandler(async (req, res) => {
 
 //@desc Delete a Contacts
 //@route DELETE /api/contacts/:id
-//@access public
+//@access private
 
 const deleteContact = asyncHandler(async (req, res) => {
   // const contact = Contact.delete();
@@ -45,13 +48,18 @@ const deleteContact = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Not Found");
   }
+  //if other user trying to update informations of other private contact's information
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(403); //FORBIDDEN
+    throw new Error("Unauthenticated fails");
+  }
   const deleteContact = await Contact.findByIdAndRemove(req.params.id);
   res.status(200).json(deleteContact);
 });
 
 //@desc Get a Contacts
 //@route Get /api/contacts/:id
-//@access public
+//@access private
 const getSpecificContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
   if (!contact) {
@@ -63,13 +71,23 @@ const getSpecificContact = asyncHandler(async (req, res) => {
 
 //@desc Update a Contacts
 //@route PUT /api/contacts/:id
-//@access public
+//@access private
 const updateContact = asyncHandler(async (req, res) => {
-  console.log(req.params);
   const contact = await Contact.findById(req.params.id);
   if (!contact) {
     res.status(404);
     throw new Error("Contact not found");
+  }
+
+  /** We can't compare two object from the data we get from the contact
+   *  since two objects have different between allocation and memory address
+   *  req.user.id is String (create when user logged in)
+   * **/
+
+  //if other user trying to update informations of other private contact's information
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(403); //FORBIDDEN
+    throw new Error("Unauthenticated fails");
   }
   const updateContact = await Contact.findByIdAndUpdate(
     req.params.id,

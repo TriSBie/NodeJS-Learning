@@ -66,14 +66,16 @@ const loginUser = asyncHandler(async (req, res) => {
     // by default the algorithm is HS256
     const accessToken = jwt.sign(
       {
-        username: user.username,
-        email: user.email,
-        id: user._id,
+        user: {
+          username: user.username,
+          email: user.email,
+          id: user._id,
+        },
       },
       process.env.ACCESS_TOKEN_SECRET,
       // we also supply the Token Expiration with NumericDate for access token ~ authentication usage
       // NOTE : A JSON numeric value representing the number of seconds from 1970-01-01T00:00:00Z UTC
-      { expiresIn: "1m" }
+      { expiresIn: "10m" }
     );
     //if the comparation succesful -> create an access token to the user
     res.status(200).json({ accessToken });
